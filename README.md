@@ -1,0 +1,199 @@
+# awtrix3-client
+
+A terminal UI client for the [AWTRIX 3](https://blueforcer.github.io/awtrix3/) pixel clock (Ulanzi TC001 and compatible devices), written in Go with [Bubbletea](https://github.com/charmbracelet/bubbletea).
+
+Supports both HTTP REST and MQTT. Distributed as a single static binary — no runtime required.
+
+---
+
+## Installation
+
+### Pre-built binary
+
+Download the latest release for your platform from the [GitHub Releases](https://github.com/terzi/awtrix3-client/releases) page.
+
+### From source
+
+```sh
+go install github.com/terzi/awtrix3-client@latest
+```
+
+---
+
+## Configuration
+
+The device host is resolved in the following priority order:
+
+1. `--host` CLI flag
+2. `AWTRIX_HOST` environment variable
+3. `AWTRIX_HOST` key in a `.env` file in the current directory
+
+Create a `.env` file (see `.env.example`):
+
+```env
+AWTRIX_HOST=192.168.1.100
+AWTRIX_MQTT_BROKER=tcp://192.168.1.10:1883
+AWTRIX_MQTT_PREFIX=awtrix
+```
+
+---
+
+## Usage
+
+### Interactive TUI
+
+Launch the full terminal UI:
+
+```sh
+awtrix3-client --host 192.168.1.100
+```
+
+#### Global flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--host` | — | Device IP or hostname |
+| `--mqtt-broker` | — | MQTT broker URL (e.g. `tcp://host:1883`) |
+| `--mqtt-prefix` | `awtrix` | MQTT topic prefix |
+
+---
+
+### TUI Tabs
+
+Navigate with number keys `1`–`8`, or click a tab with the mouse.
+
+#### 1 · Dashboard
+
+Live device stats (IP, RAM, battery, WiFi RSSI, uptime, firmware version, temperature, humidity) with auto-refresh every 5 seconds.
+
+Quick controls: previous app, next app, switch to a specific app, power off, reboot.
+
+#### 2 · Apps
+
+Custom app builder: compose text, icon, color, background, duration, repeat, scroll speed, effects, overlays, gradient, and more. Preview the JSON payload before pushing.
+
+Manage the app loop: view all active apps, delete entries, navigate the list with `j`/`k` or scroll wheel.
+
+#### 3 · Notifications
+
+Send one-time notifications with text, color, icon, sound, RTTTL melody, hold, wakeup, stack, and loop-sound options. Forward to additional device IPs. Dismiss the current held notification.
+
+#### 4 · Indicators
+
+Control the three hardware LEDs (upper-right, right-side, lower-right): set color, blink interval, or fade speed. Clear individual indicators or all at once.
+
+#### 5 · Mood Lighting
+
+Set ambient matrix lighting in **RGB color** mode (hex or r,g,b) or **color temperature** mode (1000–10000 K). Adjust brightness with a slider. Live color preview.
+
+#### 6 · Sound
+
+Play audio by **melody filename** (from the device's MELODIES folder) or by **RTTTL string**. Adjust volume before playback.
+
+#### 7 · Settings
+
+Configure display (brightness, auto-brightness, app duration, transition effect, scroll speed, global text color, uppercase), time & date formats, week start day, temperature unit, and global matrix overlay (snow, rain, drizzle, storm, thunder, frost).
+
+#### 8 · System
+
+Power on/off, matrix-only disable, deep sleep timer, reboot, OTA firmware update, reset settings, factory erase.
+
+---
+
+### Mouse support
+
+- **Tab bar**: left-click to switch tabs instantly.
+- **Scroll wheel**: navigate the app loop cursor on Dashboard and Apps tabs.
+- **Buttons**: left-click any primary action button fires its action.
+
+---
+
+### Non-interactive commands
+
+#### Send a notification
+
+```sh
+awtrix3-client notify --text "Message"
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--text` | *(required)* | Notification text |
+| `--color` | — | Text color as hex, e.g. `#FF0000` |
+| `--icon` | — | Icon ID or name |
+| `--duration` | device default | Display duration in seconds |
+| `--sound` | — | Melody filename (without extension) |
+| `--rtttl` | — | RTTTL string to play |
+| `--hold` | `false` | Hold until dismissed with the button |
+| `--wakeup` | `false` | Wake the device if the matrix is off |
+| `--stack` | `false` | Stack with other pending notifications |
+| `--loop-sound` | `false` | Loop the sound while shown |
+| `--clients` | — | Forward to extra device IPs (comma-separated) |
+
+**Examples:**
+
+```sh
+# Bold red alert, held until button press
+awtrix3-client notify --text "Motion detected" --color "#FF0000" --hold --wakeup
+
+# Notification with icon and sound, stacked
+awtrix3-client notify --text "Build passed" --icon 1234 --sound success --stack
+
+# Play a tune alongside the message
+awtrix3-client notify --text "Mario" --rtttl "d=4,o=5,b=125:e,e,e,c,e,g,g"
+
+# Forward to multiple devices
+awtrix3-client notify --text "Dinner time" --clients 192.168.1.101,192.168.1.102
+```
+
+#### Dismiss the current notification
+
+```sh
+awtrix3-client notify dismiss
+```
+
+---
+
+## API coverage
+
+| Feature | Endpoint | Tab / command |
+|---|---|---|
+| Device stats | `GET /api/stats` | Dashboard |
+| Effects list | `GET /api/effects` | Apps |
+| Transitions list | `GET /api/transitions` | Settings |
+| App loop | `GET /api/loop` | Apps, Dashboard |
+| Power on/off | `POST /api/power` | System, Dashboard |
+| Deep sleep | `POST /api/sleep` | System |
+| Play melody | `POST /api/sound` | Sound |
+| Play RTTTL | `POST /api/rtttl` | Sound |
+| Mood lighting | `POST /api/moodlight` | Mood |
+| Indicators 1–3 | `POST /api/indicator1..3` | Indicators |
+| Push custom app | `POST /api/custom?name=X` | Apps |
+| Delete custom app | `POST /api/custom?name=X` (empty) | Apps |
+| Send notification | `POST /api/notify` | Notify tab, `notify` command |
+| Dismiss notification | `POST /api/notify/dismiss` | Notify tab, `notify dismiss` |
+| Next / previous app | `POST /api/nextapp`, `/previousapp` | Dashboard |
+| Switch to app | `POST /api/switch` | Dashboard |
+| Get / set settings | `GET/POST /api/settings` | Settings |
+| Reboot | `POST /api/reboot` | System |
+| OTA update | `POST /api/doupdate` | System |
+| Erase flash | `POST /api/erase` | System |
+| Reset settings | `POST /api/resetSettings` | System |
+
+MQTT publish is supported for the same set of topics using the `--mqtt-broker` flag.
+
+---
+
+## Building from source
+
+```sh
+git clone https://github.com/terzi/awtrix3-client
+cd awtrix3-client
+go build -o awtrix3-client .
+```
+
+Multi-platform release builds:
+
+```sh
+goreleaser build --snapshot --clean
+```
