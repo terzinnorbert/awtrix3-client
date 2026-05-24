@@ -37,7 +37,6 @@ archives:
           - zip
     files:
       - .env.example
-      - plan.md
 
 checksum:
   name_template: "checksums.txt"
