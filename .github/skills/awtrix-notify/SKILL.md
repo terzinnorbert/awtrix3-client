@@ -72,46 +72,77 @@ awtrix3-client notify --text "<message>" --color "<color>" --wakeup [--hold]
 
 All calls use `--wakeup` so the display activates even if it was sleeping.
 
-## Binary Setup
+## Setup
 
-### Option A — Pre-built binary (recommended)
+Complete these steps once before using the skill.
 
-Download the archive for your platform from the [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases/latest) page, extract it, and place the binary on your `PATH`.
+### 1. Set the device host
 
-| Platform | Archive | Binary name |
-|----------|---------|-------------|
+The binary requires `AWTRIX_HOST` to know where to send notifications. Set it and persist it:
+
+**Linux / macOS:**
+```bash
+export AWTRIX_HOST=192.168.x.x
+echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc   # or ~/.zshrc
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:AWTRIX_HOST = "192.168.x.x"
+[Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")
+```
+
+### 2. Install the binary
+
+**Option A — Pre-built binary (recommended)**
+
+Download the archive for your platform from [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases/latest):
+
+| Platform | Archive | Binary |
+|----------|---------|--------|
 | Linux x86-64 | `awtrix3-client_*_linux_amd64.tar.gz` | `awtrix3-client` |
 | Linux ARM64 | `awtrix3-client_*_linux_arm64.tar.gz` | `awtrix3-client` |
 | macOS (Intel) | `awtrix3-client_*_darwin_amd64.tar.gz` | `awtrix3-client` |
 | macOS (Apple Silicon) | `awtrix3-client_*_darwin_arm64.tar.gz` | `awtrix3-client` |
 | Windows x86-64 | `awtrix3-client_*_windows_amd64.zip` | `awtrix3-client.exe` |
 
-**Linux / macOS — extract and install:**
 ```bash
+# Linux / macOS
 tar -xzf awtrix3-client_*_linux_amd64.tar.gz
 sudo mv awtrix3-client /usr/local/bin/
 ```
 
-**Windows — extract and add to PATH:**
 ```powershell
+# Windows
 Expand-Archive awtrix3-client_*_windows_amd64.zip .
 Move-Item awtrix3-client.exe "$env:USERPROFILE\bin\"
 # Ensure $env:USERPROFILE\bin is in your PATH
 ```
 
-### Option B — Build from source
+**Option B — Build from source (requires Go 1.21+)**
 
 ```bash
 go install github.com/terzinnorbert/awtrix3-client@latest
 ```
 
-Requires Go 1.21+.
-
-### Configure the target device
+`go install` places the binary in `$HOME/go/bin`, which is **not on PATH by default**. Add it once:
 
 ```bash
-export AWTRIX_HOST=192.168.1.100   # Linux / macOS (add to ~/.bashrc or ~/.zshrc)
-$env:AWTRIX_HOST = "192.168.1.100" # Windows PowerShell (add to $PROFILE)
+# Linux / macOS
+echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bashrc   # or ~/.zshrc
+source ~/.bashrc
 ```
 
-Alternatively pass `--host 192.168.1.100` directly to every `awtrix3-client` call.
+```powershell
+# Windows
+$gobin = "$env:USERPROFILE\go\bin"
+[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$gobin", "User")
+```
+
+### 3. Verify
+
+Run a test notification — the display should show "Skill ready" in green:
+
+```bash
+awtrix3-client notify --text "Skill ready" --color "#00FF00" --wakeup
+```

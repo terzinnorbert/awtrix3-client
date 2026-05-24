@@ -53,8 +53,9 @@ switch ($EventType.ToLower()) {
 $invokeArgs = @('notify', '--text', $Message, '--color', $Color, '--wakeup')
 if ($Hold) { $invokeArgs += '--hold' }
 
-# Echo the resolved command so the agent can log what was sent
-Write-Host ("+ awtrix3-client " + ($invokeArgs -join ' ')) -ForegroundColor DarkGray
+# Echo the resolved command (properly quoted) so the agent can log what was sent
+$quoted = $invokeArgs | ForEach-Object { if ($_ -match '\s') { "'$_'" } else { $_ } }
+Write-Host ("+ awtrix3-client " + ($quoted -join ' ')) -ForegroundColor DarkGray
 
 & awtrix3-client @invokeArgs
 exit $LASTEXITCODE

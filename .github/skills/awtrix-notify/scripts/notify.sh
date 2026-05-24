@@ -76,7 +76,7 @@ if [[ "$HOLD" == true ]]; then
   CMD+=(--hold)
 fi
 
-# Echo the resolved command so the agent can log what was sent
-echo "+ ${CMD[*]}" >&2
+# Echo the resolved command (properly quoted) so the agent can log what was sent
+echo "+ $(printf '%q ' "${CMD[@]}")" >&2
 
 exec "${CMD[@]}"
