@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/terzi/awtrix3-client/internal/api"
+	"github.com/terzinnorbert/awtrix3-client/internal/api"
 )
 
 // Each indicator has 3 inputs: color, blink, fade.

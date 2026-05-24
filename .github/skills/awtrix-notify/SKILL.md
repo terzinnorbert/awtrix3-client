@@ -77,7 +77,7 @@ All calls use `--wakeup` so the display activates even if it was sleeping.
 If `awtrix3-client` is not on `PATH`:
 
 ```bash
-go install github.com/terzi/awtrix3-client@latest
+go install github.com/terzinnorbert/awtrix3-client@latest
 ```
 
 Or download a pre-built binary for your platform from GitHub Releases. Configure the target device:

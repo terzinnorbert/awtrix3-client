@@ -1,4 +1,4 @@
-module github.com/terzi/awtrix3-client
+module github.com/terzinnorbert/awtrix3-client
 
 go 1.26.1
 

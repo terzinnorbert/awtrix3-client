@@ -7,8 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
-	"github.com/terzi/awtrix3-client/internal/api"
-	"github.com/terzi/awtrix3-client/internal/tui"
+	"github.com/terzinnorbert/awtrix3-client/internal/api"
+	"github.com/terzinnorbert/awtrix3-client/internal/tui"
 )
 
 var (

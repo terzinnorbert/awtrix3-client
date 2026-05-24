@@ -7,7 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/terzi/awtrix3-client/internal/api"
+	"github.com/terzinnorbert/awtrix3-client/internal/api"
 )
 
 // tabModel is implemented by every tab in the application.

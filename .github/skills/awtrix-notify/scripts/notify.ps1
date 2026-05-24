@@ -26,7 +26,7 @@ $ErrorActionPreference = 'Stop'
 
 # Verify the binary is available
 if (-not (Get-Command awtrix3-client -ErrorAction SilentlyContinue)) {
-    Write-Error "awtrix3-client not found on PATH.`nInstall with: go install github.com/terzi/awtrix3-client@latest"
+    Write-Error "awtrix3-client not found on PATH.`nInstall with: go install github.com/terzinnorbert/awtrix3-client@latest"
     exit 1
 }
 

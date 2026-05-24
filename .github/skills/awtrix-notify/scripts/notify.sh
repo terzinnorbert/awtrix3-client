@@ -27,7 +27,7 @@ fi
 # Verify the binary is available
 if ! command -v awtrix3-client &>/dev/null; then
   echo "Error: awtrix3-client not found on PATH." >&2
-  echo "Install with: go install github.com/terzi/awtrix3-client@latest" >&2
+  echo "Install with: go install github.com/terzinnorbert/awtrix3-client@latest" >&2
   exit 1
 fi
 

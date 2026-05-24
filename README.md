@@ -10,12 +10,12 @@ Supports both HTTP REST and MQTT. Distributed as a single static binary — no r
 
 ### Pre-built binary
 
-Download the latest release for your platform from the [GitHub Releases](https://github.com/terzi/awtrix3-client/releases) page.
+Download the latest release for your platform from the [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases) page.
 
 ### From source
 
 ```sh
-go install github.com/terzi/awtrix3-client@latest
+go install github.com/terzinnorbert/awtrix3-client@latest
 ```
 
 ---
@@ -187,7 +187,7 @@ MQTT publish is supported for the same set of topics using the `--mqtt-broker` f
 ## Building from source
 
 ```sh
-git clone https://github.com/terzi/awtrix3-client
+git clone https://github.com/terzinnorbert/awtrix3-client
 cd awtrix3-client
 go build -o awtrix3-client .
 ```
