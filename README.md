@@ -192,8 +192,51 @@ cd awtrix3-client
 go build -o awtrix3-client .
 ```
 
-Multi-platform release builds:
+Local multi-platform builds (output in `dist/`):
+
+```sh
+make dist
+```
+
+Full release build via GoReleaser:
 
 ```sh
 goreleaser build --snapshot --clean
 ```
+
+---
+
+## Agent Skill (GitHub Copilot)
+
+This repository ships a [VS Code agent skill](https://code.visualstudio.com/docs/copilot/customization/agent-skills) that instructs GitHub Copilot to push color-coded notifications to your AWTRIX3 display during coding sessions — automatically, without any extra prompting.
+
+### What it does
+
+The agent sends a short message to the pixel clock whenever it:
+- Starts a long or complex task
+- Completes work successfully
+- Encounters an error or build failure
+- Needs your attention or input
+- Finishes a build or test run
+
+### Prerequisites
+
+- VS Code with the **GitHub Copilot** extension
+- `awtrix3-client` binary on your `PATH` (see [Installation](#installation))
+- `AWTRIX_HOST` environment variable set to your device IP
+
+### Usage
+
+The skill is loaded automatically — once `AWTRIX_HOST` is set and the binary is on your `PATH`, the agent will start notifying the display on its own.
+
+You can also invoke it explicitly in chat:
+
+```
+/awtrix-notify success "Deployment complete"
+```
+
+Available event types: `start` · `success` · `error` · `attention` · `build` · `test`
+
+### Skill location
+
+The skill lives at [`.github/skills/awtrix-notify/`](.github/skills/awtrix-notify/) and works on Linux, macOS, and Windows.

@@ -74,17 +74,44 @@ All calls use `--wakeup` so the display activates even if it was sleeping.
 
 ## Binary Setup
 
-If `awtrix3-client` is not on `PATH`:
+### Option A — Pre-built binary (recommended)
+
+Download the archive for your platform from the [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases/latest) page, extract it, and place the binary on your `PATH`.
+
+| Platform | Archive | Binary name |
+|----------|---------|-------------|
+| Linux x86-64 | `awtrix3-client_*_linux_amd64.tar.gz` | `awtrix3-client` |
+| Linux ARM64 | `awtrix3-client_*_linux_arm64.tar.gz` | `awtrix3-client` |
+| macOS (Intel) | `awtrix3-client_*_darwin_amd64.tar.gz` | `awtrix3-client` |
+| macOS (Apple Silicon) | `awtrix3-client_*_darwin_arm64.tar.gz` | `awtrix3-client` |
+| Windows x86-64 | `awtrix3-client_*_windows_amd64.zip` | `awtrix3-client.exe` |
+
+**Linux / macOS — extract and install:**
+```bash
+tar -xzf awtrix3-client_*_linux_amd64.tar.gz
+sudo mv awtrix3-client /usr/local/bin/
+```
+
+**Windows — extract and add to PATH:**
+```powershell
+Expand-Archive awtrix3-client_*_windows_amd64.zip .
+Move-Item awtrix3-client.exe "$env:USERPROFILE\bin\"
+# Ensure $env:USERPROFILE\bin is in your PATH
+```
+
+### Option B — Build from source
 
 ```bash
 go install github.com/terzinnorbert/awtrix3-client@latest
 ```
 
-Or download a pre-built binary for your platform from GitHub Releases. Configure the target device:
+Requires Go 1.21+.
+
+### Configure the target device
 
 ```bash
-export AWTRIX_HOST=192.168.1.100   # Linux / macOS
-$env:AWTRIX_HOST = "192.168.1.100" # Windows PowerShell
+export AWTRIX_HOST=192.168.1.100   # Linux / macOS (add to ~/.bashrc or ~/.zshrc)
+$env:AWTRIX_HOST = "192.168.1.100" # Windows PowerShell (add to $PROFILE)
 ```
 
-Alternatively, pass `--host 192.168.1.100` directly to `awtrix3-client`.
+Alternatively pass `--host 192.168.1.100` directly to every `awtrix3-client` call.
