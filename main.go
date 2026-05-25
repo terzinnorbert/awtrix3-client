@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/joho/godotenv"
@@ -12,7 +13,7 @@ import (
 )
 
 var (
-	flagHost       string
+	flagHosts      []string
 	flagMQTTBroker string
 	flagMQTTPrefix string
 
@@ -67,16 +68,17 @@ var rootCmd = &cobra.Command{
 Supports custom apps, notifications, indicators, mood lighting, sound, and more.
 
 Configuration (in priority order):
-  1. --host flag
-  2. AWTRIX_HOST environment variable
+  1. --host flag (comma-separated or repeated for multiple devices)
+  2. AWTRIX_HOST environment variable (comma-separated for multiple)
   3. .env file in the current directory`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runTUI()
 	},
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&flagHost, "host", "", "AWTRIX 3 device IP or hostname (e.g. 192.168.1.100)")
+	rootCmd.PersistentFlags().StringSliceVar(&flagHosts, "host", nil, "AWTRIX 3 device IP or hostname; comma-separated or repeated for multiple devices")
 	rootCmd.PersistentFlags().StringVar(&flagMQTTBroker, "mqtt-broker", "", "MQTT broker URL (e.g. tcp://192.168.1.10:1883)")
 	rootCmd.PersistentFlags().StringVar(&flagMQTTPrefix, "mqtt-prefix", "awtrix", "MQTT topic prefix")
 
@@ -109,8 +111,8 @@ func runTUI() error {
 	// when no .env file exists).
 	_ = godotenv.Load()
 
-	host := resolveHost()
-	if host == "" {
+	hosts := resolveHosts()
+	if len(hosts) == 0 {
 		fmt.Fprintln(os.Stderr, `Error: AWTRIX host not configured.
 
 Set it via one of:
@@ -120,7 +122,7 @@ Set it via one of:
 		return fmt.Errorf("no host configured")
 	}
 
-	client := api.NewClient(host)
+	client := api.NewClient(hosts[0])
 
 	// Optionally wire up MQTT client (non-fatal if connection fails).
 	mqttBroker := resolveMQTTBroker()
@@ -145,8 +147,8 @@ Set it via one of:
 func runNotify() error {
 	_ = godotenv.Load()
 
-	host := resolveHost()
-	if host == "" {
+	hosts := resolveHosts()
+	if len(hosts) == 0 {
 		return fmt.Errorf("no host configured: use --host, AWTRIX_HOST env var, or .env file")
 	}
 
@@ -154,7 +156,7 @@ func runNotify() error {
 		return fmt.Errorf("--sound and --rtttl are mutually exclusive")
 	}
 
-	client := api.NewClient(host)
+	client := api.NewMultiClient(hosts)
 
 	n := api.CustomApp{
 		Text:  notifyText,
@@ -195,12 +197,12 @@ func runNotify() error {
 func runDismiss() error {
 	_ = godotenv.Load()
 
-	host := resolveHost()
-	if host == "" {
+	hosts := resolveHosts()
+	if len(hosts) == 0 {
 		return fmt.Errorf("no host configured: use --host, AWTRIX_HOST env var, or .env file")
 	}
 
-	if err := api.NewClient(host).DismissNotification(); err != nil {
+	if err := api.NewMultiClient(hosts).DismissNotification(); err != nil {
 		return fmt.Errorf("failed to dismiss notification: %w", err)
 	}
 
@@ -208,15 +210,22 @@ func runDismiss() error {
 	return nil
 }
 
-// resolveHost returns the AWTRIX host from flag > env > (already loaded .env).
-func resolveHost() string {
-	if flagHost != "" {
-		return flagHost
+// resolveHosts returns all configured AWTRIX hosts from flag > env > (already loaded .env).
+// The --host flag and AWTRIX_HOST env var both accept comma-separated lists.
+func resolveHosts() []string {
+	if len(flagHosts) > 0 {
+		return flagHosts
 	}
 	if v := os.Getenv("AWTRIX_HOST"); v != "" {
-		return v
+		var hosts []string
+		for _, h := range strings.Split(v, ",") {
+			if h = strings.TrimSpace(h); h != "" {
+				hosts = append(hosts, h)
+			}
+		}
+		return hosts
 	}
-	return ""
+	return nil
 }
 
 // resolveMQTTBroker returns the MQTT broker URL from flag > env.
