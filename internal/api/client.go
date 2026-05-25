@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -115,7 +116,7 @@ func (c *Client) post(path string, payload interface{}) error {
 		}
 	}
 	if len(msgs) > 0 {
-		return fmt.Errorf(strings.Join(msgs, "; "))
+		return errors.New(strings.Join(msgs, "; "))
 	}
 	return nil
 }
@@ -157,7 +158,7 @@ func (c *Client) postRaw(path string, payload string) error {
 		}
 	}
 	if len(msgs) > 0 {
-		return fmt.Errorf(strings.Join(msgs, "; "))
+		return errors.New(strings.Join(msgs, "; "))
 	}
 	return nil
 }
