@@ -139,12 +139,25 @@ awtrix3-client notify --text "Motion detected" --color "#FF0000" --hold --wakeup
 # Notification with icon and sound, stacked
 awtrix3-client notify --text "Build passed" --icon 1234 --sound success --stack
 
-# Play a tune alongside the message
-awtrix3-client notify --text "Mario" --rtttl "d=4,o=5,b=125:e,e,e,c,e,g,g"
+# Play a tune alongside the message (RTTTL format: name:defaults:notes)
+awtrix3-client notify --text "Mario" --rtttl "Mario:d=4,o=5,b=200:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g5,8p,8c6,16p,8g5,16p,8e5,16p,8a5,8b5,16a#5,8a5,8g5,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b5"
 
 # Forward to multiple devices
 awtrix3-client notify --text "Dinner time" --clients 192.168.1.101,192.168.1.102
 ```
+
+> **RTTTL format:** `name:d=<duration>,o=<octave>,b=<bpm>:note1,note2,...`
+> The name prefix is required — strings without it will be silently ignored by the device.
+>
+> **Ready-to-use tones:**
+>
+> | Tune | RTTTL string |
+> |---|---|
+> | Super Mario Bros | `Mario:d=4,o=5,b=200:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g5,8p,8c6,16p,8g5,16p,8e5,16p,8a5,8b5,16a#5,8a5,8g5,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b5` |
+> | Tetris (Korobeiniki) | `Tetris:d=4,o=5,b=160:e6,8b5,8c6,d6,8c6,8b5,a5,8a5,8c6,e6,8d6,8c6,b5,8b5,8c6,d6,e6,c6,a5,a5` |
+> | Star Wars Imperial March | `Imperial:d=4,o=5,b=112:8a4,8a4,8a4,2f4,2c5,8a4,2f4,2c5,1a4` |
+> | Nokia ringtone | `Nokia:d=4,o=5,b=225:8e6,8d6,f#5,g#5,8c#6,8b5,d5,e5,8b5,8a5,c#5,e5,2a5` |
+> | Zelda secret | `Zelda:d=4,o=5,b=200:8g5,8f#5,8d#5,8a4,8g#4,8e5,8g#5,8c6` |
 
 #### Dismiss the current notification
 

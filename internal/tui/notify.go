@@ -55,7 +55,7 @@ func newNotifyTab(client *api.Client) *notifyTab {
 		{"1001", 8, 32},
 		{"10", 5, 5},
 		{"alarm", 20, 64},
-		{"d=4,o=5,b=125:e,e,e", 40, 512},
+		{"Mario:d=4,o=5,b=125:e,e,e", 40, 512},
 		{"192.168.1.101", 40, 256},
 	}
 	inputs := make([]textinput.Model, len(specs))

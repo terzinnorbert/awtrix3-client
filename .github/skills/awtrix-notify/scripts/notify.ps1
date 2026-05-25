@@ -1,5 +1,8 @@
 # notify.ps1 — send a notification to the AWTRIX3 pixel display
 #
+# No installation required — uses "go run" to fetch and execute the client.
+# Requires: Go 1.21+  (https://go.dev/dl/)
+#
 # Usage (positional):  .\notify.ps1 start "Planning migration"
 # Usage (named):       .\notify.ps1 -EventType success -Message "Build complete"
 #
@@ -10,8 +13,6 @@
 #   attention  — user input or attention required     (orange, held)
 #   build      — build result                         (blue)
 #   test       — test run result                      (purple)
-#
-# The binary is resolved from PATH; set AWTRIX_HOST or --host to target device.
 
 param(
     [Parameter(Position = 0, Mandatory = $true)]
@@ -24,10 +25,33 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Verify the binary is available
-if (-not (Get-Command awtrix3-client -ErrorAction SilentlyContinue)) {
-    Write-Error "awtrix3-client not found on PATH.`nInstall with: go install github.com/terzinnorbert/awtrix3-client@latest"
+# Verify Go is available
+if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
+    Write-Error "Go not found on PATH.`nInstall Go 1.21+ from https://go.dev/dl/"
     exit 1
+}
+
+# Resolve AWTRIX_HOST — prompt interactively and persist if not set
+$hostValue = [System.Environment]::GetEnvironmentVariable("AWTRIX_HOST")
+if (-not $hostValue) {
+    if ([System.Environment]::UserInteractive -and -not [Console]::IsInputRedirected) {
+        $hostValue = Read-Host "AWTRIX_HOST not set. Enter device IP address"
+        if (-not $hostValue) {
+            Write-Error "No IP address provided."
+            exit 1
+        }
+        $env:AWTRIX_HOST = $hostValue
+        [System.Environment]::SetEnvironmentVariable("AWTRIX_HOST", $hostValue, "User")
+        Write-Host "Saved AWTRIX_HOST=$hostValue to user environment variables." -ForegroundColor DarkGray
+    } else {
+        # Non-interactive (e.g. called from an AI agent): exit with a distinct code
+        # so the caller knows to ask the user for the IP first.
+        Write-Host "Error: AWTRIX_HOST is not set." -ForegroundColor Red
+        Write-Host "Set it with:" -ForegroundColor Yellow
+        Write-Host '  $env:AWTRIX_HOST = "192.168.x.x"'
+        Write-Host '  [Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")'
+        exit 2
+    }
 }
 
 # Truncate message to 30 characters — keeps the scrolling pixel display readable
@@ -55,7 +79,7 @@ if ($Hold) { $invokeArgs += '--hold' }
 
 # Echo the resolved command (properly quoted) so the agent can log what was sent
 $quoted = $invokeArgs | ForEach-Object { if ($_ -match '\s') { "'$_'" } else { $_ } }
-Write-Host ("+ awtrix3-client " + ($quoted -join ' ')) -ForegroundColor DarkGray
+Write-Host ("+ go run github.com/terzinnorbert/awtrix3-client@latest " + ($quoted -join ' ')) -ForegroundColor DarkGray
 
-& awtrix3-client @invokeArgs
+& go run github.com/terzinnorbert/awtrix3-client@latest @invokeArgs
 exit $LASTEXITCODE

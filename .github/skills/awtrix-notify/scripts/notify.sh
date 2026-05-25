@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # notify.sh — send a notification to the AWTRIX3 pixel display
 #
+# No installation required — uses "go run" to fetch and execute the client.
+# Requires: Go 1.21+  (https://go.dev/dl/)
+#
 # Usage: notify.sh <event-type> "<message>"
 #
 # Event types:
@@ -10,8 +13,6 @@
 #   attention  — user input or attention required     (orange, held)
 #   build      — build result                         (blue)
 #   test       — test run result                      (purple)
-#
-# The binary is resolved from PATH; set AWTRIX_HOST or --host to target device.
 
 set -euo pipefail
 
@@ -24,11 +25,38 @@ if [[ -z "$EVENT_TYPE" || -z "$MESSAGE" ]]; then
   exit 1
 fi
 
-# Verify the binary is available
-if ! command -v awtrix3-client &>/dev/null; then
-  echo "Error: awtrix3-client not found on PATH." >&2
-  echo "Install with: go install github.com/terzinnorbert/awtrix3-client@latest" >&2
+# Verify Go is available
+if ! command -v go &>/dev/null; then
+  echo "Error: 'go' not found on PATH." >&2
+  echo "Install Go 1.21+ from https://go.dev/dl/" >&2
   exit 1
+fi
+
+# Resolve AWTRIX_HOST — prompt interactively and persist if not set
+if [[ -z "${AWTRIX_HOST:-}" ]]; then
+  if [[ -t 0 ]]; then
+    read -rp "AWTRIX_HOST not set. Enter device IP address: " AWTRIX_HOST
+    if [[ -z "$AWTRIX_HOST" ]]; then
+      echo "Error: no IP address provided." >&2
+      exit 1
+    fi
+    export AWTRIX_HOST
+    # Persist to the appropriate shell RC file
+    RC_FILE="${HOME}/.bashrc"
+    if [[ "${SHELL:-}" == */zsh ]]; then
+      RC_FILE="${HOME}/.zshrc"
+    fi
+    echo "export AWTRIX_HOST=${AWTRIX_HOST}" >> "$RC_FILE"
+    echo "Saved AWTRIX_HOST=${AWTRIX_HOST} to ${RC_FILE}" >&2
+  else
+    # Non-interactive (e.g. called from an AI agent): exit with a distinct code
+    # so the caller knows to ask the user for the IP first.
+    echo "Error: AWTRIX_HOST is not set." >&2
+    echo "Set it with:" >&2
+    echo "  export AWTRIX_HOST=192.168.x.x" >&2
+    echo "  echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc  # or ~/.zshrc" >&2
+    exit 2
+  fi
 fi
 
 # Truncate message to 30 characters — keeps the scrolling pixel display readable
@@ -66,7 +94,7 @@ case "$EVENT_TYPE" in
 esac
 
 # Build the command array
-CMD=(awtrix3-client notify --text "$MESSAGE" --color "$COLOR")
+CMD=(go run github.com/terzinnorbert/awtrix3-client@latest notify --text "$MESSAGE" --color "$COLOR")
 
 if [[ "$WAKEUP" == true ]]; then
   CMD+=(--wakeup)

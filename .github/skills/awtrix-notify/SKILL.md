@@ -6,7 +6,8 @@ argument-hint: "<event-type> \"<message>\"  — e.g.  success \"Build complete\"
 
 # AWTRIX Notify
 
-Push short, color-coded messages to the AWTRIX3 pixel display at key moments during a conversation using this project's `awtrix3-client notify` CLI.
+Push short, color-coded messages to the AWTRIX3 pixel display at key moments during a conversation.
+No installation required — the client is fetched and run directly via `go run`.
 
 ## When to Use
 
@@ -35,9 +36,40 @@ Send a notification at each of these moments:
 
 Pick one event type from the table above. Keep the message under 30 characters.
 
-### 2. Run the helper script
+### 2. Ensure AWTRIX_HOST is set
 
-Detect the OS and run the matching script from the project root:
+Check whether `AWTRIX_HOST` is available in the current environment:
+
+**Linux / macOS:**
+```bash
+echo "${AWTRIX_HOST:-NOT SET}"
+```
+
+**Windows (PowerShell):**
+```powershell
+[System.Environment]::GetEnvironmentVariable("AWTRIX_HOST")
+```
+
+**If it is not set**, ask the user for their device IP using `vscode_askQuestions`, then persist it:
+
+**Linux / macOS** — append to the correct RC file and export for this session:
+```bash
+# Replace 192.168.x.x with the IP the user provided
+echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc   # use ~/.zshrc if the shell is zsh
+export AWTRIX_HOST=192.168.x.x
+```
+
+**Windows (PowerShell)** — persist to user environment and set for this session:
+```powershell
+# Replace 192.168.x.x with the IP the user provided
+[Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")
+$env:AWTRIX_HOST = "192.168.x.x"
+```
+
+### 3. Run the helper script
+
+Detect the OS and run the matching script from the project root.
+No binary installation needed — just Go 1.21+.
 
 **Linux / macOS:**
 ```bash
@@ -49,14 +81,14 @@ bash .github/skills/awtrix-notify/scripts/notify.sh <event-type> "<message>"
 pwsh .github/skills/awtrix-notify/scripts/notify.ps1 <event-type> "<message>"
 ```
 
-The scripts inherit `AWTRIX_HOST` from the environment — the same variable this project already uses.
+The scripts read `AWTRIX_HOST` from the environment and run the client via `go run`.
+If the script exits with code `2`, it means `AWTRIX_HOST` was not set — go back to step 2.
 
-### 3. Fallback: direct CLI (no script needed)
-
-If the script is unavailable, call the binary directly:
+### 4. Fallback: call the client directly (no script needed)
 
 ```bash
-awtrix3-client notify --text "<message>" --color "<color>" --wakeup [--hold]
+go run github.com/terzinnorbert/awtrix3-client@latest notify \
+  --text "<message>" --color "<color>" --wakeup [--hold]
 ```
 
 ## Color & Flags Reference
@@ -72,77 +104,27 @@ awtrix3-client notify --text "<message>" --color "<color>" --wakeup [--hold]
 
 All calls use `--wakeup` so the display activates even if it was sleeping.
 
-## Setup
+## Setup (first time only)
 
-Complete these steps once before using the skill.
+### 1. Install Go 1.21+
 
-### 1. Set the device host
-
-The binary requires `AWTRIX_HOST` to know where to send notifications. Set it and persist it:
-
-**Linux / macOS:**
+Check whether Go is already available:
 ```bash
-export AWTRIX_HOST=192.168.x.x
-echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc   # or ~/.zshrc
+go version
 ```
 
-**Windows (PowerShell):**
-```powershell
-$env:AWTRIX_HOST = "192.168.x.x"
-[Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")
-```
+If not installed, download from [https://go.dev/dl/](https://go.dev/dl/).
+On first use, `go run` will download and cache the client automatically — no manual install step needed.
 
-### 2. Install the binary
+### 2. Set AWTRIX_HOST
 
-**Option A — Pre-built binary (recommended)**
-
-Download the archive for your platform from [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases/latest):
-
-| Platform | Archive | Binary |
-|----------|---------|--------|
-| Linux x86-64 | `awtrix3-client_*_linux_amd64.tar.gz` | `awtrix3-client` |
-| Linux ARM64 | `awtrix3-client_*_linux_arm64.tar.gz` | `awtrix3-client` |
-| macOS (Intel) | `awtrix3-client_*_darwin_amd64.tar.gz` | `awtrix3-client` |
-| macOS (Apple Silicon) | `awtrix3-client_*_darwin_arm64.tar.gz` | `awtrix3-client` |
-| Windows x86-64 | `awtrix3-client_*_windows_amd64.zip` | `awtrix3-client.exe` |
-
-```bash
-# Linux / macOS
-tar -xzf awtrix3-client_*_linux_amd64.tar.gz
-sudo mv awtrix3-client /usr/local/bin/
-```
-
-```powershell
-# Windows
-Expand-Archive awtrix3-client_*_windows_amd64.zip .
-Move-Item awtrix3-client.exe "$env:USERPROFILE\bin\"
-# Ensure $env:USERPROFILE\bin is in your PATH
-```
-
-**Option B — Build from source (requires Go 1.21+)**
-
-```bash
-go install github.com/terzinnorbert/awtrix3-client@latest
-```
-
-`go install` places the binary in `$HOME/go/bin`, which is **not on PATH by default**. Add it once:
-
-```bash
-# Linux / macOS
-echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bashrc   # or ~/.zshrc
-source ~/.bashrc
-```
-
-```powershell
-# Windows
-$gobin = "$env:USERPROFILE\go\bin"
-[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$gobin", "User")
-```
+Follow step 2 in the Procedure above. The value only needs to be set once; it persists across sessions.
 
 ### 3. Verify
 
 Run a test notification — the display should show "Skill ready" in green:
 
 ```bash
-awtrix3-client notify --text "Skill ready" --color "#00FF00" --wakeup
+go run github.com/terzinnorbert/awtrix3-client@latest notify \
+  --text "Skill ready" --color "#00FF00" --wakeup
 ```

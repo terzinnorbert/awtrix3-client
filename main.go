@@ -35,11 +35,18 @@ var notifyCmd = &cobra.Command{
 	Short: "Send a notification to the AWTRIX device",
 	Long: `Send a one-time notification directly without launching the TUI.
 
+RTTTL format: name:d=<duration>,o=<octave>,b=<bpm>:notes
+The name prefix is required — strings without it are silently ignored.
+
 Examples:
   awtrix3-client notify --text "Motion detected" --color "#FF0000" --hold
   awtrix3-client notify --text "Hello" --icon 1234 --duration 5 --stack
   awtrix3-client notify --text "Alert" --sound alarm --wakeup
-  awtrix3-client notify --text "Tune" --rtttl "d=4,o=5,b=125:e,e,e"`,
+  awtrix3-client notify --text "Mario"     --rtttl "Mario:d=4,o=5,b=200:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g5,8p,8c6,16p,8g5,16p,8e5,16p,8a5,8b5,16a#5,8a5,8g5,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b5"
+  awtrix3-client notify --text "Tetris"    --rtttl "Tetris:d=4,o=5,b=160:e6,8b5,8c6,d6,8c6,8b5,a5,8a5,8c6,e6,8d6,8c6,b5,8b5,8c6,d6,e6,c6,a5,a5"
+  awtrix3-client notify --text "Star Wars" --rtttl "Imperial:d=4,o=5,b=112:8a4,8a4,8a4,2f4,2c5,8a4,2f4,2c5,1a4"
+  awtrix3-client notify --text "Zelda"     --rtttl "Zelda:d=4,o=5,b=200:8g5,8f#5,8d#5,8a4,8g#4,8e5,8g#5,8c6"`,
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runNotify()
 	},

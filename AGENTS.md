@@ -6,7 +6,8 @@ Project-level instructions for AI coding agents (OpenAI Codex CLI, and other age
 
 ## AWTRIX Notify
 
-Push short, color-coded messages to the AWTRIX3 pixel display at key moments during a task using the `awtrix3-client notify` CLI.
+Push short, color-coded messages to the AWTRIX3 pixel display at key moments during a task.
+No binary installation needed — the client runs directly via `go run`.
 
 ### When to send a notification
 
@@ -30,7 +31,22 @@ Send one at each of these moments without being asked:
 
 ### How to send
 
-Run the helper script from the project root:
+Before calling the script, verify `AWTRIX_HOST` is set in the environment.
+If it is not set, ask the user for their device IP address, then persist it:
+
+**Linux / macOS:**
+```bash
+echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc   # use ~/.zshrc for zsh
+export AWTRIX_HOST=192.168.x.x
+```
+
+**Windows:**
+```powershell
+[Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")
+$env:AWTRIX_HOST = "192.168.x.x"
+```
+
+Then run the helper script from the project root:
 
 **Linux / macOS:**
 ```bash
@@ -42,10 +58,13 @@ bash .github/skills/awtrix-notify/scripts/notify.sh <event-type> "<message>"
 pwsh .github/skills/awtrix-notify/scripts/notify.ps1 <event-type> "<message>"
 ```
 
-If the script is unavailable, call the binary directly:
+If the script exits with code `2`, `AWTRIX_HOST` was not set — ask the user and persist it first (see above).
+
+If the script is unavailable, call the client directly via `go run`:
 
 ```bash
-awtrix3-client notify --text "<message>" --color "<color>" --wakeup [--hold]
+go run github.com/terzinnorbert/awtrix3-client@latest notify \
+  --text "<message>" --color "<color>" --wakeup [--hold]
 ```
 
 ### Color and flags reference
@@ -64,12 +83,21 @@ Always include `--wakeup` so the display activates even when sleeping.
 
 ### Setup (first time only)
 
-#### 1. Set the device host
+#### 1. Install Go 1.21+
+
+```bash
+go version   # check if already installed
+```
+
+If not installed, download from [https://go.dev/dl/](https://go.dev/dl/).
+On first use, `go run` downloads and caches the client automatically.
+
+#### 2. Set the device host
 
 ```bash
 # Linux / macOS
 export AWTRIX_HOST=192.168.x.x
-echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc
+echo 'export AWTRIX_HOST=192.168.x.x' >> ~/.bashrc   # or ~/.zshrc
 ```
 
 ```powershell
@@ -78,32 +106,9 @@ $env:AWTRIX_HOST = "192.168.x.x"
 [Environment]::SetEnvironmentVariable("AWTRIX_HOST", "192.168.x.x", "User")
 ```
 
-#### 2. Install the binary
-
-**Pre-built (recommended):** Download from [GitHub Releases](https://github.com/terzinnorbert/awtrix3-client/releases/latest).
-
-```bash
-# Linux / macOS
-tar -xzf awtrix3-client_*_linux_amd64.tar.gz
-sudo mv awtrix3-client /usr/local/bin/
-```
-
-```powershell
-# Windows
-Expand-Archive awtrix3-client_*_windows_amd64.zip .
-Move-Item awtrix3-client.exe "$env:USERPROFILE\bin\"
-```
-
-**Build from source (requires Go 1.21+):**
-
-```bash
-go install github.com/terzinnorbert/awtrix3-client@latest
-# Add to PATH if needed:
-echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bashrc && source ~/.bashrc
-```
-
 #### 3. Verify
 
 ```bash
-awtrix3-client notify --text "Skill ready" --color "#00FF00" --wakeup
+go run github.com/terzinnorbert/awtrix3-client@latest notify \
+  --text "Skill ready" --color "#00FF00" --wakeup
 ```
