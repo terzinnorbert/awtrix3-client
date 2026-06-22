@@ -1,0 +1,2 @@
+description = "Send an AWTRIX notification: /awtrix-notify <event-type> \"message\""
+prompt = "Trigger an AWTRIX notification. Parse {{args}} as event type and message, then call /awtrix-notify with the same values."

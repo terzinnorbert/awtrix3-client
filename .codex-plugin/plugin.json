@@ -1,0 +1,30 @@
+{
+  "name": "awtrix-notify",
+  "version": "0.2.2",
+  "description": "AWTRIX3 task notifications for agent workflows.",
+  "author": {
+    "name": "terzinnorbert",
+    "url": "https://github.com/terzinnorbert"
+  },
+  "homepage": "https://github.com/terzinnorbert/awtrix3-client",
+  "repository": "https://github.com/terzinnorbert/awtrix3-client",
+  "license": "MIT",
+  "keywords": ["awtrix", "notifications", "copilot", "codex"],
+  "skills": "./skills/",
+  "hooks": "./hooks/claude-codex-hooks.json",
+  "interface": {
+    "displayName": "AWTRIX Notify",
+    "shortDescription": "Send color-coded AWTRIX notifications",
+    "longDescription": "Adds lifecycle and on-demand notifications to AWTRIX3 devices during coding sessions.",
+    "developerName": "terzinnorbert",
+    "category": "Productivity",
+    "capabilities": ["Instructions", "Lifecycle hooks"],
+    "websiteURL": "https://github.com/terzinnorbert/awtrix3-client",
+    "defaultPrompt": [
+      "Send a start notification for this task.",
+      "Send a success notification when done.",
+      "Send an error notification if something fails."
+    ],
+    "brandColor": "#00AAFF"
+  }
+}

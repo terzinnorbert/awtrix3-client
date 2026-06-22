@@ -9,6 +9,17 @@ Project-level instructions for AI coding agents (OpenAI Codex CLI, and other age
 Push short, color-coded messages to the AWTRIX3 pixel display at key moments during a task.
 No binary installation needed — the client runs directly via `go run`.
 
+### Plugin-first integration
+
+This repository provides plugin adapters for Copilot and Codex:
+
+- Copilot plugin manifest: `.github/plugin/plugin.json`
+- Codex plugin manifest: `.codex-plugin/plugin.json`
+- Hook maps: `hooks/copilot-hooks.json`, `hooks/claude-codex-hooks.json`
+
+When plugin lifecycle hooks are available, prefer plugin-driven notifications first.
+If plugin hooks are unavailable, fall back to the helper script workflow below.
+
 ### When to send a notification
 
 Send one at each of these moments without being asked:

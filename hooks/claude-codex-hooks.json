@@ -1,0 +1,31 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/awtrix-activate.js\" || exit 0",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { if ($env:CLAUDE_PLUGIN_ROOT) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\awtrix-activate.js\" } elseif ($env:PLUGIN_ROOT) { node \"$env:PLUGIN_ROOT\\hooks\\awtrix-activate.js\" } }",
+            "timeout": 5,
+            "statusMessage": "Loading AWTRIX plugin..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/awtrix-mode-tracker.js\" || exit 0",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { if ($env:CLAUDE_PLUGIN_ROOT) { node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\awtrix-mode-tracker.js\" } elseif ($env:PLUGIN_ROOT) { node \"$env:PLUGIN_ROOT\\hooks\\awtrix-mode-tracker.js\" } }",
+            "timeout": 5,
+            "statusMessage": "Tracking AWTRIX events..."
+          }
+        ]
+      }
+    ]
+  }
+}

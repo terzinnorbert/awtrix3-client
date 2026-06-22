@@ -1,0 +1,16 @@
+{
+  "name": "awtrix-notify",
+  "description": "AWTRIX3 task notifications for agent workflows.",
+  "version": "0.2.2",
+  "author": {
+    "name": "terzinnorbert",
+    "url": "https://github.com/terzinnorbert"
+  },
+  "homepage": "https://github.com/terzinnorbert/awtrix3-client",
+  "repository": "https://github.com/terzinnorbert/awtrix3-client",
+  "license": "MIT",
+  "keywords": ["awtrix", "notifications", "copilot", "codex"],
+  "commands": "commands/",
+  "skills": "skills/",
+  "hooks": "hooks/copilot-hooks.json"
+}

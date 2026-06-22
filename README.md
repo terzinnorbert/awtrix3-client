@@ -219,9 +219,10 @@ goreleaser build --snapshot --clean
 
 ---
 
-## Agent Skill (GitHub Copilot)
+## Plugin Integration (Copilot + Codex)
 
-This repository ships a [VS Code agent skill](https://code.visualstudio.com/docs/copilot/customization/agent-skills) that instructs GitHub Copilot to push color-coded notifications to your AWTRIX3 display during coding sessions — automatically, without any extra prompting.
+This repository now ships plugin adapters for both GitHub Copilot and Codex.
+The plugin uses lifecycle hooks and skills to send color-coded AWTRIX3 notifications during coding sessions.
 
 ### What it does
 
@@ -234,15 +235,45 @@ The agent sends a short message to the pixel clock whenever it:
 
 ### Prerequisites
 
-- VS Code with the **GitHub Copilot** extension
-- `awtrix3-client` binary on your `PATH` (see [Installation](#installation))
+- Node.js on your `PATH` (for hook execution)
+- Go 1.21+ on your `PATH` (notify helper scripts call `go run`)
 - `AWTRIX_HOST` environment variable set to your device IP
+
+### Hook runtime baseline
+
+The supported runtime for plugin lifecycle hooks is Node.js.
+Both hosts execute the shared Node hook scripts in `hooks/`, and those scripts invoke
+the existing Go notify flow via the repo helper scripts (`notify.sh` / `notify.ps1`).
+This is the canonical implementation baseline for Copilot and Codex.
+
+### Install
+
+#### GitHub Copilot CLI
+
+```bash
+copilot plugin install .
+```
+
+Interactive session equivalent:
+
+```text
+/plugin install .
+```
+
+#### Codex
+
+```bash
+codex plugin install .
+```
+
+After installation in Codex, review and trust plugin hooks when prompted.
 
 ### Usage
 
-The skill is loaded automatically — once `AWTRIX_HOST` is set and the binary is on your `PATH`, the agent will start notifying the display on its own.
+On session start, the plugin sends a `start` notification through the lifecycle hook.
+You can trigger explicit events in chat via plugin command/skill usage:
 
-You can also invoke it explicitly in chat:
+Canonical plugin display name: **AWTRIX Notify**.
 
 ```
 /awtrix-notify success "Deployment complete"
@@ -250,6 +281,93 @@ You can also invoke it explicitly in chat:
 
 Available event types: `start` · `success` · `error` · `attention` · `build` · `test`
 
-### Skill location
+### Plugin files
 
-The skill lives at [`.github/skills/awtrix-notify/`](.github/skills/awtrix-notify/) and works on Linux, macOS, and Windows.
+- Copilot manifest: [`.github/plugin/plugin.json`](.github/plugin/plugin.json)
+- Codex manifest: [`.codex-plugin/plugin.json`](.codex-plugin/plugin.json)
+- Hook maps: [`hooks/copilot-hooks.json`](hooks/copilot-hooks.json), [`hooks/claude-codex-hooks.json`](hooks/claude-codex-hooks.json)
+- Hook scripts: [`hooks/awtrix-activate.js`](hooks/awtrix-activate.js), [`hooks/awtrix-mode-tracker.js`](hooks/awtrix-mode-tracker.js)
+- Skill content: [`skills/awtrix-notify/SKILL.md`](skills/awtrix-notify/SKILL.md)
+
+See [`docs/agent-portability.md`](docs/agent-portability.md) for detailed host-by-host capability mappings and installation instructions.
+
+---
+
+## Migration: Skill to Plugin (v0.2.2)
+
+### What changed
+
+**Version 0.2.2 finalizes the migration from a legacy skill-only model to Ponytail-style plugin adapters.**
+
+- **Old path**: `.github/skills/awtrix-notify/` (deprecated and removed)
+- **New path**: `skills/awtrix-notify/` (plugin-discoverable)
+- **Scope**: Plugin manifests now reference a unified `skills/` and `commands/` directory at the repository root, enabling both Copilot and Codex to discover and load capabilities automatically on installation.
+- **Release notes**: See [docs/release-notes.md](docs/release-notes.md) for the v0.2.2 migration summary.
+
+### Upgrade path
+
+If you previously installed from the legacy skill path:
+
+1. **Remove old installation** (if it exists in your environment)
+   - Copilot: Uninstall plugin, re-run `copilot plugin install .`
+   - Codex: Uninstall plugin, re-run `codex plugin install .`
+
+2. **Reinstall plugin** to trigger lifecycle hooks on the new hook scripts
+   ```bash
+   # Copilot
+   copilot plugin install .
+   
+   # Codex
+   codex plugin install .
+   ```
+
+3. **Verify setup**
+   - On next session start, the plugin should emit a `start` notification to AWTRIX (if `AWTRIX_HOST` is set).
+   - On next prompt, the `awtrix-mode-tracker` hook should activate and track task type.
+
+### Legacy behavior (instruction-only fallback)
+
+If you prefer not to use plugins, you can still send AWTRIX notifications manually via the AGENTS.md instruction:
+
+```
+/awtrix-notify success "Done: 14 files updated"
+```
+
+This fallback route uses the same Go client and does not require plugin installation. See [AGENTS.md](AGENTS.md) for details and event type reference.
+
+### Timeline
+
+| Date | Event |
+|------|-------|
+| v0.2.2 (2026-06-22) | Plugin migration released; legacy skill path removed. |
+
+---
+
+### Troubleshooting
+
+**Q: I installed the plugin but no notifications appear**
+
+A: Verify `AWTRIX_HOST` is set in your environment:
+```bash
+echo $AWTRIX_HOST  # Should print your device IP
+```
+
+If unset, configure it:
+```bash
+export AWTRIX_HOST=192.168.1.100
+```
+
+**Q: The plugin hooks fail silently**
+
+A: Check that Node.js is available on your `PATH`:
+```bash
+node --version  # Should print v14 or later
+```
+
+Hooks are non-blocking by design; errors do not stop your session. Review the plugin configuration in your Copilot/Codex settings if hooks are not executing.
+
+**Q: Can I still use the old .github/skills path?**
+
+A: No — the legacy path was removed in v0.2.2. Use the new plugin-based installation (see Upgrade path above) or the instruction-only fallback (AGENTS.md).
+
+---
